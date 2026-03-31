@@ -19,6 +19,7 @@ export interface StateConfig {
     onEnter?: (inst: Entity, data?: any) => void;
     onExit?: (inst: Entity) => void;
     onUpdate?: (inst: Entity, dt: number) => void;
+    onTimeout?: (inst: Entity) => void;
     timeline?: TimeEvent[];
     events?: EventHandler[];
 }
@@ -35,6 +36,7 @@ export class State {
     public readonly onEnter?: (inst: Entity, data?: any) => void;
     public readonly onExit?: (inst: Entity) => void;
     public readonly onUpdate?: (inst: Entity, dt: number) => void;
+    public readonly onTimeout?: (inst: Entity) => void;
     public readonly timeline: TimeEvent[];
     public readonly events: EventHandler[];
 
@@ -46,6 +48,7 @@ export class State {
         this.onEnter = config.onEnter;
         this.onExit = config.onExit;
         this.onUpdate = config.onUpdate;
+        this.onTimeout = config.onTimeout;
         
         // Sort timeline by time for proper execution order
         this.timeline = (config.timeline || []).sort((a, b) => a.time - b.time);

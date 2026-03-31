@@ -1,27 +1,35 @@
-import { Component } from "../core/Component";
-import { StateGraphDef, State } from "../core/StateCore";
-import { StateTag } from "../core/Tags";
+import { Entity } from "../Entity";
+import { StateGraphDef, State } from "../StateCore";
+import { StateTag } from "../Tags";
+import { SGManager } from "./SGManager";
 
 /**
- * Component that attaches a StateGraph (FSM) to an Entity.
+ * Native StateGraph runner for an Entity.
  * Manages entering/exiting states, processing the timeline, and event routing.
  */
-export class StateGraph extends Component {
-    private sgDef: StateGraphDef | null = null;
+export class StateGraph {
+    public inst!: Entity;
+    private sgDef: StateGraphDef;
     public currentState: State | null = null;
     
     private timeInState: number = 0;
-    private timelineIndex: number = 0;
+    private timelineIndex: number | null = null;
+    private timeout: number | null = null;
 
     // Track listener functions by event name so we can unregister them easily
     private sgEventListeners: Map<string, Array<(data: any) => void>> = new Map();
     private stateEventListeners: Map<string, Array<(data: any) => void>> = new Map();
 
-    public onAdd(): void {
-        this.inst.startUpdatingComponent(this);
+    constructor(sgDef: StateGraphDef) {
+        this.sgDef = sgDef;
     }
 
-    public onRemove(): void {
+    public start(): void {
+        SGManager.getInstance().addInstance(this);
+    }
+
+    public stop(): void {
+        SGManager.getInstance().removeInstance(this);
         this.clearStateGraph();
     }
 
@@ -61,7 +69,6 @@ export class StateGraph extends Component {
         this.sgEventListeners.clear();
 
         this.currentState = null;
-        this.sgDef = null;
         this.timeInState = 0;
     }
 
@@ -102,7 +109,13 @@ export class StateGraph extends Component {
         // Enter new state
         this.currentState = nextState;
         this.timeInState = 0;
-        this.timelineIndex = 0;
+        this.timeout = null;
+
+        if (this.currentState.timeline.length > 0) {
+            this.timelineIndex = 0;
+        } else {
+            this.timelineIndex = null;
+        }
 
         // Register state-specific events
         for (const evt of this.currentState.events) {
@@ -118,6 +131,8 @@ export class StateGraph extends Component {
             this.currentState.onEnter(this.inst, data);
         }
 
+        SGManager.getInstance().onEnterNewState(this);
+
         return true;
     }
 
@@ -125,18 +140,45 @@ export class StateGraph extends Component {
         return this.currentState ? this.currentState.hasTag(tags) : false;
     }
 
-    public update(dt: number): void {
-        if (!this.currentState) return;
+    public setTimeout(time: number): void {
+        this.timeout = time;
+        SGManager.getInstance().wake(this);
+    }
+
+    public updateState(dt: number): number | null {
+        if (!this.currentState) return null;
 
         this.timeInState += dt;
+        let startState = this.currentState;
+
+        if (this.timeout !== null) {
+            this.timeout -= dt;
+            if (this.timeout <= 0) {
+                this.timeout = null;
+                if (this.currentState.onTimeout) {
+                    this.currentState.onTimeout(this.inst);
+                    if (startState !== this.currentState) {
+                        return 0; // Tick immediately
+                    }
+                }
+            }
+        }
 
         // Process Timeline Events
         const timeline = this.currentState.timeline;
-        while (this.timelineIndex < timeline.length) {
+        while (this.timelineIndex !== null && this.timelineIndex < timeline.length) {
             const evt = timeline[this.timelineIndex];
             if (this.timeInState >= evt.time) {
+                const oldTime = this.timeInState;
+                const extraTime = this.timeInState - evt.time;
+
                 evt.fn(this.inst);
                 this.timelineIndex++;
+
+                if (startState !== this.currentState || oldTime > this.timeInState) {
+                    // State changed! If startState != this.currentState, evaluate new state immediately
+                    return 0;
+                }
             } else {
                 break;
             }
@@ -145,6 +187,23 @@ export class StateGraph extends Component {
         // Process State onUpdate
         if (this.currentState.onUpdate) {
             this.currentState.onUpdate(this.inst, dt);
+        }
+
+        let timeToSleep: number | null = null;
+        if (this.timelineIndex !== null && this.timelineIndex < timeline.length) {
+            timeToSleep = timeline[this.timelineIndex].time - this.timeInState;
+        }
+
+        if (this.timeout !== null && (timeToSleep === null || timeToSleep > this.timeout)) {
+            timeToSleep = this.timeout;
+        }
+
+        if (this.currentState.onUpdate) {
+            return 0;
+        } else if (timeToSleep !== null) {
+            return Math.max(0, timeToSleep);
+        } else {
+            return null;
         }
     }
 }

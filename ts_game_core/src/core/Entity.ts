@@ -1,6 +1,9 @@
 import { EventEmitter, EventHandler } from './EventEmitter';
-import { Component } from './Component';
-import { EntityTag } from './Tags';
+import { Component } from "./Component";
+import { StateTag, EntityTag } from "./Tags";
+import type { Brain } from "./behavior/Brain";
+import type { StateGraph } from "./stategraph/StateGraph";
+import { Transform } from "../components/Transform";
 
 // Utility type to define the constructor of a Component class
 export type ComponentConstructor<T extends Component> = new (inst: Entity) => T;
@@ -9,11 +12,16 @@ export class Entity {
     private static nextId: number = 1;
 
     public readonly GUID: number;
-    public prefabName: string | null = null;
+    public prefabName: string = "Unnamed";
+    public isValid: boolean = true;
 
     // Core systems
     private components: Map<Function, Component> = new Map();
     private updateComponents: Set<Component> = new Set();
+
+    // Native sub-systems
+    public brain: Brain | null = null;
+    public sg: StateGraph | null = null;
     private tags: number = 0;
     private eventEmitter: EventEmitter = new EventEmitter();
 
@@ -89,6 +97,24 @@ export class Entity {
         return comp;
     }
 
+    public setBrain(brain: Brain): void {
+        if (this.brain) {
+            this.brain.stop();
+        }
+        this.brain = brain;
+        brain.inst = this;
+        brain.start();
+    }
+
+    public setStateGraph(sg: StateGraph): void {
+        if (this.sg) {
+            this.sg.stop();
+        }
+        this.sg = sg;
+        sg.inst = this;
+        sg.start();
+    }
+
     /**
      * Removes a component by its class.
      */
@@ -151,13 +177,33 @@ export class Entity {
         }
     }
 
+    public facePoint(x: number, z: number): void {
+        this.getComponent(Transform)?.facePoint(x, z);
+    }
+
     // ============================================
     // Lifecycle
     // ============================================
 
     public remove(): void {
+        if (!this.isValid) {
+            return;
+        }
+
+        this.isValid = false;
+
         // Notify others
         this.pushEvent("onremove");
+
+        if (this.brain) {
+            this.brain.stop();
+            this.brain = null;
+        }
+
+        if (this.sg) {
+            this.sg.stop();
+            this.sg = null;
+        }
 
         // Cleanup components
         for (const [_, comp] of this.components) {

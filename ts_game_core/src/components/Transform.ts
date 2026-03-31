@@ -5,6 +5,7 @@ export class Transform extends Component {
     public x: number = 0;
     public y: number = 0;
     public z: number = 0;
+    public rotation: number = 0;
 
     public setPosition(x: number, y: number, z: number): void {
         this.x = x;
@@ -22,5 +23,11 @@ export class Transform extends Component {
         const targetTransform = target.getComponent(Transform);
         if (!targetTransform) return null;
         return this.getDistanceSqToPoint(targetTransform.x, targetTransform.z);
+    }
+
+    public facePoint(tx: number, tz: number): void {
+        const dx = tx - this.x;
+        const dz = tz - this.z;
+        this.rotation = Math.atan2(dz, dx);
     }
 }

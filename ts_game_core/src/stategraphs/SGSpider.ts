@@ -1,5 +1,4 @@
 import { StateGraphDef, StateGraphConfig, State } from "../core/StateCore";
-import { StateGraph } from "../components/StateGraph";
 import { Entity } from "../core/Entity";
 import { StateTag } from "../core/Tags";
 
@@ -9,14 +8,14 @@ export const sg_spider_config: StateGraphConfig = {
         {
             name: "attacked",
             fn: (inst, data) => {
-                const sgc = inst.getComponent(StateGraph);
+                const sgc = inst.sg;
                 if (sgc) sgc.goToState("hit");
             }
         },
         {
             name: "death",
             fn: (inst) => {
-                const sgc = inst.getComponent(StateGraph);
+                const sgc = inst.sg;
                 if (sgc) sgc.goToState("death");
             }
         }
@@ -54,7 +53,7 @@ export const sg_spider_config: StateGraphConfig = {
                     time: 1.0, // 1.0s in, attack anim done
                     fn: (inst) => {
                         console.log(`[SG: ${inst.prefabName}] ✔️ Attack anim finished.`);
-                        inst.getComponent(StateGraph)?.goToState("idle");
+                        inst.sg?.goToState("idle");
                     }
                 }
             ]
@@ -71,7 +70,7 @@ export const sg_spider_config: StateGraphConfig = {
                     time: 0.3, // Recovers after 0.3s
                     fn: (inst) => {
                         console.log(`[SG: ${inst.prefabName}] ⚡ Recovered from hit.`);
-                        inst.getComponent(StateGraph)?.goToState("idle");
+                        inst.sg?.goToState("idle");
                     }
                 }
             ]

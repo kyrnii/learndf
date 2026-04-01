@@ -3,6 +3,7 @@ import { BrainManager } from "../core/behavior/BrainManager";
 import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Locomotor } from "../components/Locomotor";
 import { Transform } from "../components/Transform";
+import { findWalkableOffset } from "../world";
 import { resolveValue, ValueOrFn } from "./utils";
 
 export interface WanderTimes {
@@ -17,6 +18,7 @@ export interface WanderOptions {
     shouldRun?: ValueOrFn<boolean>;
 }
 
+// 漫游节点：在 home 周围随机游走，超出活动范围时会优先往 home 方向回归。
 export class Wander extends BehaviorNode {
     private waitUntil: number = 0;
     private walking: boolean = false;
@@ -66,6 +68,11 @@ export class Wander extends BehaviorNode {
             ? resolveValue(this.options.wanderDist, inst)
             : 12;
         const angle = Math.random() * Math.PI * 2;
+
+        const walkableOffset = findWalkableOffset(inst, angle, radius, 8);
+        if (walkableOffset) {
+            return walkableOffset;
+        }
 
         return {
             x: transform.x + Math.cos(angle) * radius,

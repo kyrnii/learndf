@@ -2,6 +2,7 @@ import { Entity } from "../Entity";
 import { BehaviorNode, NodeStatus } from "./Node";
 import { BrainManager } from "./BrainManager";
 
+// 选择节点：按顺序尝试子节点，直到有一个成功或正在运行。
 export class Selector extends BehaviorNode {
     private idx: number = 0;
 
@@ -34,6 +35,7 @@ export class Selector extends BehaviorNode {
     }
 }
 
+// 顺序节点：按顺序执行子节点，直到有一个失败或正在运行。
 export class Sequence extends BehaviorNode {
     private idx: number = 0;
 
@@ -66,6 +68,7 @@ export class Sequence extends BehaviorNode {
     }
 }
 
+// 优先级节点：定期重新评估子节点，并在更高优先级出现时打断当前子节点。
 export class PriorityNode extends BehaviorNode {
     private idx: number | null = null;
     public lastTime: number | null = null;
@@ -145,6 +148,7 @@ export class PriorityNode extends BehaviorNode {
     }
 }
 
+// 随机节点：随机选择一个可执行的子节点来运行。
 export class RandomNode extends BehaviorNode {
     private idx: number | null = null;
 
@@ -189,6 +193,7 @@ export class RandomNode extends BehaviorNode {
     }
 }
 
+// 并行节点：同时推进多个子节点，直到全部完成或其中一个失败。
 export class ParallelNode extends BehaviorNode {
     protected stopOnAnyComplete: boolean = false;
 
@@ -241,6 +246,7 @@ export class ParallelNode extends BehaviorNode {
     }
 }
 
+// 任一完成并行节点：任意一个子节点完成即可视为整体完成。
 export class ParallelNodeAny extends ParallelNode {
     constructor(children: BehaviorNode[]) {
         super(children, "Parallel(Any)");
@@ -248,6 +254,7 @@ export class ParallelNodeAny extends ParallelNode {
     }
 }
 
+// 循环节点：按顺序重复执行子节点若干轮。
 export class LoopNode extends BehaviorNode {
     private idx: number = 0;
     private maxReps: number;

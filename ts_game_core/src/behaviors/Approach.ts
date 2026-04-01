@@ -3,6 +3,7 @@ import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Locomotor } from "../components/Locomotor";
 import { getDistanceSq, getTargetPosition, isAliveEntity, resolveValue, ValueOrFn } from "./utils";
 
+// 接近目标直到进入指定距离内，常用于追上交互目标或攻击前的补位。
 export class Approach extends BehaviorNode {
     private currentTarget: Entity | null = null;
 

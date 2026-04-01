@@ -1,5 +1,5 @@
 import { Entity } from "./Entity";
-import { StateTag } from "./Tags";
+import { Tag, TagQuery, hasAnyTag, toTagArray } from "./Tags";
 
 export interface TimeEvent {
     time: number;
@@ -13,8 +13,8 @@ export interface EventHandler {
 
 export interface StateConfig {
     name: string;
-    tags?: StateTag;
-    excludeTags?: StateTag;
+    tags?: TagQuery;
+    excludeTags?: TagQuery;
     canEnter?: (inst: Entity, data?: any) => boolean;
     onEnter?: (inst: Entity, data?: any) => void;
     onExit?: (inst: Entity) => void;
@@ -30,8 +30,8 @@ export interface StateConfig {
  */
 export class State {
     public readonly name: string;
-    public readonly tags: number;
-    public readonly excludeTags: number;
+    public readonly tags: Set<Tag>;
+    public readonly excludeTags: Set<Tag>;
     public readonly canEnter?: (inst: Entity, data?: any) => boolean;
     public readonly onEnter?: (inst: Entity, data?: any) => void;
     public readonly onExit?: (inst: Entity) => void;
@@ -42,8 +42,8 @@ export class State {
 
     constructor(config: StateConfig) {
         this.name = config.name;
-        this.tags = config.tags || 0;
-        this.excludeTags = config.excludeTags || 0;
+        this.tags = new Set(toTagArray(config.tags));
+        this.excludeTags = new Set(toTagArray(config.excludeTags));
         this.canEnter = config.canEnter;
         this.onEnter = config.onEnter;
         this.onExit = config.onExit;
@@ -55,8 +55,8 @@ export class State {
         this.events = config.events || [];
     }
 
-    public hasTag(tags: StateTag): boolean {
-        return (this.tags & tags) !== 0;
+    public hasTag(tags: TagQuery): boolean {
+        return hasAnyTag(this.tags, tags);
     }
 }
 

@@ -25,6 +25,10 @@ export class Combat extends Component {
         return this.timeSinceLastAttack >= this.attackPeriod && target.isValid;
     }
 
+    public setAttackCooldownElapsed(seconds: number): void {
+        this.timeSinceLastAttack = Math.max(0, seconds);
+    }
+
     public doAttack(target: Entity): void {
         if (!this.canAttack(target)) {
             console.log(`[${this.inst.prefabName}] cannot attack yet, on cooldown.`);

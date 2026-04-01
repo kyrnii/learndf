@@ -1,17 +1,29 @@
 import { EventEmitter, EventHandler } from './EventEmitter';
 import { Component } from "./Component";
-import { StateTag, EntityTag } from "./Tags";
+import { TagQuery, hasAllTags, hasAnyTag } from "./Tags";
 import type { Brain } from "./behavior/Brain";
 import type { StateGraph } from "./stategraph/StateGraph";
 import { Transform } from "../components/Transform";
+import type { World } from "../world/World";
+import type { MapContext } from "../world/MapContext";
+import type { EntityPhysics } from "../physics/game/EntityPhysics";
 
 // Utility type to define the constructor of a Component class
 export type ComponentConstructor<T extends Component> = new (inst: Entity) => T;
+
+export interface EntitySaveData {
+    prefabId: string | null;
+    prefabName: string;
+    mapId: string | null;
+    tags: string[];
+    components: Record<string, unknown>;
+}
 
 export class Entity {
     private static nextId: number = 1;
 
     public readonly GUID: number;
+    public prefabId: string | null = null;
     public prefabName: string = "Unnamed";
     public isValid: boolean = true;
 
@@ -22,7 +34,10 @@ export class Entity {
     // Native sub-systems
     public brain: Brain | null = null;
     public sg: StateGraph | null = null;
-    private tags: number = 0;
+    public world: World | null = null;
+    public map: MapContext | null = null;
+    public physics: EntityPhysics | null = null;
+    private tags: Set<string> = new Set();
     private eventEmitter: EventEmitter = new EventEmitter();
 
     constructor() {
@@ -33,27 +48,30 @@ export class Entity {
     // Tag System
     // ============================================
 
-    public addTag(tags: EntityTag): void {
-        this.tags |= tags;
+    public addTag(tags: TagQuery): void {
+        const values = Array.isArray(tags) ? tags : [tags];
+        for (const tag of values) {
+            this.tags.add(tag);
+        }
     }
 
-    public removeTag(tags: EntityTag): void {
-        this.tags &= ~tags;
+    public removeTag(tags: TagQuery): void {
+        const values = Array.isArray(tags) ? tags : [tags];
+        for (const tag of values) {
+            this.tags.delete(tag);
+        }
     }
 
-    public hasTag(tags: EntityTag): boolean {
-        // Returns true if ANY of the requested tags are present
-        return (this.tags & tags) !== 0;
+    public hasTag(tags: TagQuery): boolean {
+        return hasAnyTag(this.tags, tags);
     }
 
-    public hasAllTags(tags: EntityTag): boolean {
-        // Returns true only if ALL of the requested tags are present
-        return (this.tags & tags) === tags;
+    public hasAllTags(tags: TagQuery): boolean {
+        return hasAllTags(this.tags, tags);
     }
 
-    public hasAnyTag(tags: EntityTag): boolean {
-        // Same as hasTag
-        return this.hasTag(tags);
+    public hasAnyTag(tags: TagQuery): boolean {
+        return hasAnyTag(this.tags, tags);
     }
 
     // ============================================
@@ -181,6 +199,53 @@ export class Entity {
         this.getComponent(Transform)?.facePoint(x, z);
     }
 
+    public setWorld(world: World | null): void {
+        this.world = world;
+    }
+
+    public setPrefabId(prefabId: string | null): void {
+        this.prefabId = prefabId;
+    }
+
+    public setMap(map: MapContext | null): void {
+        this.map = map;
+    }
+
+    public setPhysics(physics: EntityPhysics | null): void {
+        this.physics = physics;
+    }
+
+    public serialize(): EntitySaveData {
+        const components: Record<string, unknown> = {};
+        for (const component of this.components.values()) {
+            if (!component.serialize) {
+                continue;
+            }
+            components[component.constructor.name] = component.serialize();
+        }
+
+        return {
+            prefabId: this.prefabId,
+            prefabName: this.prefabName,
+            mapId: this.map?.id ?? null,
+            tags: Array.from(this.tags),
+            components,
+        };
+    }
+
+    public deserialize(data: EntitySaveData): void {
+        this.prefabId = data.prefabId;
+        this.prefabName = data.prefabName;
+        this.tags = new Set(data.tags);
+
+        for (const component of this.components.values()) {
+            const componentData = data.components[component.constructor.name];
+            if (component.deserialize && componentData !== undefined) {
+                component.deserialize(componentData);
+            }
+        }
+    }
+
     // ============================================
     // Lifecycle
     // ============================================
@@ -205,6 +270,11 @@ export class Entity {
             this.sg = null;
         }
 
+        this.physics = null;
+        this.map = null;
+        this.world = null;
+        this.prefabId = null;
+
         // Cleanup components
         for (const [_, comp] of this.components) {
             if (comp.onRemove) {
@@ -214,7 +284,7 @@ export class Entity {
 
         this.components.clear();
         this.updateComponents.clear();
-        this.tags = 0;
+        this.tags.clear();
         this.eventEmitter.removeAllListeners();
     }
 }

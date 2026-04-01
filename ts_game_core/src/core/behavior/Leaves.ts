@@ -5,6 +5,7 @@ import { Locomotor } from "../../components/Locomotor";
 import { BrainManager } from "./BrainManager";
 import { PriorityNode } from "./Composites";
 
+// 条件叶子节点：根据传入条件函数返回成功或失败。
 export class ConditionNode extends BehaviorNode {
     constructor(private conditionFn: (inst: Entity) => boolean, name: string = "Condition") {
         super(name);
@@ -19,6 +20,7 @@ export class ConditionNode extends BehaviorNode {
     }
 }
 
+// 动作叶子节点：生成并发起一个 BufferedAction，等待动作完成结果。
 export class ActionNode extends BehaviorNode {
     private action: BufferedAction | null = null;
     private pendingStatus: NodeStatus | null = null;
@@ -65,6 +67,7 @@ export class ActionNode extends BehaviorNode {
     }
 }
 
+// 等待叶子节点：在一段时间后返回成功。
 export class WaitNode extends BehaviorNode {
     private waitNodeWakeTime: number = 0;
 
@@ -95,6 +98,7 @@ export class WaitNode extends BehaviorNode {
     }
 }
 
+// 多阶段条件节点：首次使用 startFn，后续使用 continueFn 维持状态。
 export class MultiConditionNode extends BehaviorNode {
     private isRunning: boolean = false;
 
@@ -122,6 +126,7 @@ export class MultiConditionNode extends BehaviorNode {
     }
 }
 
+// 条件等待节点：条件满足前一直保持运行状态。
 export class ConditionWaitNode extends BehaviorNode {
     constructor(private conditionFn: (inst: Entity) => boolean, name: string = "ConditionWait") {
         super(name);
@@ -136,6 +141,7 @@ export class ConditionWaitNode extends BehaviorNode {
     }
 }
 
+// 闭锁节点：在一段时间窗口内允许子节点执行，超出窗口则失败。
 export class LatchNode extends BehaviorNode {
     private currentLatchDuration: number = 0;
     private lastLatchTime: number = -Infinity;
@@ -165,6 +171,7 @@ export class LatchNode extends BehaviorNode {
     }
 }
 
+// 事件节点：监听实体事件，事件触发后驱动子节点执行。
 export class EventNode extends BehaviorNode {
     private triggered: boolean = false;
     private eventData: any = null;

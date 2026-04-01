@@ -1,8 +1,8 @@
 import { Entity } from "../Entity";
 import { BehaviorNode } from "./Node";
 import { StateTag } from "../Tags";
-import { BrainManager } from "./BrainManager";
 
+// 行为树容器：挂在实体身上，负责驱动整棵行为树按节奏思考。
 export class Brain {
     public inst!: Entity;
     private rootNode: BehaviorNode | null = null;
@@ -12,17 +12,18 @@ export class Brain {
     }
 
     public start(): void {
-        BrainManager.getInstance().addInstance(this);
+        this.inst.world?.brainManager.addInstance(this);
     }
 
     public stop(): void {
-        BrainManager.getInstance().removeInstance(this);
+        this.inst.world?.brainManager.removeInstance(this);
     }
 
     public onUpdate(): void {
-        if (!this.rootNode) return;
+        if (!this.rootNode) {
+            return;
+        }
 
-        // Check if entity is busy in stategraph (like hitting, sleeping, dead)
         const sg = this.inst.sg;
         if (!sg || !sg.hasStateTag(StateTag.Busy)) {
             this.rootNode.visit(this.inst);
@@ -35,6 +36,6 @@ export class Brain {
         if (this.rootNode) {
             return this.rootNode.getTreeSleepTime();
         }
-        return 0; // Or null, we'll return 0 if no tree
+        return 0;
     }
 }

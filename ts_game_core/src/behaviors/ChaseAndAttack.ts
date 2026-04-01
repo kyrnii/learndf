@@ -5,6 +5,7 @@ import { Locomotor } from "../components/Locomotor";
 import { BrainManager } from "../core/behavior/BrainManager";
 import { getDistanceSq, getTargetPosition, isAliveEntity } from "./utils";
 
+// 经典追击战斗节点：找到目标后持续追逐，进入攻击范围后反复发起攻击。
 export class ChaseAndAttack extends BehaviorNode {
     private target: Entity | null = null;
     private startTime: number | null = null;

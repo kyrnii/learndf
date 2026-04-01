@@ -1,7 +1,6 @@
 import { Entity } from "../Entity";
 import { StateGraphDef, State } from "../StateCore";
-import { StateTag } from "../Tags";
-import { SGManager } from "./SGManager";
+import { TagQuery } from "../Tags";
 
 /**
  * Native StateGraph runner for an Entity.
@@ -25,11 +24,14 @@ export class StateGraph {
     }
 
     public start(): void {
-        SGManager.getInstance().addInstance(this);
+        if (this.sgEventListeners.size === 0 && this.currentState === null) {
+            this.setStateGraph(this.sgDef);
+        }
+        this.inst.world?.sgManager.addInstance(this);
     }
 
     public stop(): void {
-        SGManager.getInstance().removeInstance(this);
+        this.inst.world?.sgManager.removeInstance(this);
         this.clearStateGraph();
     }
 
@@ -91,7 +93,7 @@ export class StateGraph {
         }
 
         // Check if transition is blocked by excludeTags
-        if (nextState.excludeTags !== 0 && this.hasStateTag(nextState.excludeTags)) {
+        if (nextState.excludeTags.size > 0 && this.hasStateTag(Array.from(nextState.excludeTags))) {
             return false;
         }
 
@@ -131,18 +133,18 @@ export class StateGraph {
             this.currentState.onEnter(this.inst, data);
         }
 
-        SGManager.getInstance().onEnterNewState(this);
+        this.inst.world?.sgManager.onEnterNewState(this);
 
         return true;
     }
 
-    public hasStateTag(tags: StateTag): boolean {
+    public hasStateTag(tags: TagQuery): boolean {
         return this.currentState ? this.currentState.hasTag(tags) : false;
     }
 
     public setTimeout(time: number): void {
         this.timeout = time;
-        SGManager.getInstance().wake(this);
+        this.inst.world?.sgManager.wake(this);
     }
 
     public updateState(dt: number): number | null {

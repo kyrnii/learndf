@@ -2,6 +2,7 @@ import { Entity } from "../core/Entity";
 import { BrainManager } from "../core/behavior/BrainManager";
 import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 
+// 频率限制节点：限制子节点在最小时间间隔内只能成功一次。
 export class MinPeriod extends BehaviorNode {
     private lastSuccessTime: number | null;
 

@@ -16,4 +16,23 @@ export class Item extends Component {
         this.inst.remove();
         return true;
     }
+
+    public serialize(): unknown {
+        return {
+            displayName: this.displayName,
+            stackSize: this.stackSize,
+            canPickup: this.canPickup,
+        };
+    }
+
+    public deserialize(data: unknown): void {
+        if (!data || typeof data !== "object") {
+            return;
+        }
+
+        const save = data as Partial<{ displayName: string; stackSize: number; canPickup: boolean }>;
+        this.displayName = save.displayName ?? this.displayName;
+        this.stackSize = save.stackSize ?? this.stackSize;
+        this.canPickup = save.canPickup ?? this.canPickup;
+    }
 }

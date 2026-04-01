@@ -4,6 +4,7 @@ import { Locomotor } from "../components/Locomotor";
 import { Transform } from "../components/Transform";
 import { resolveValue, ValueOrFn } from "./utils";
 
+// 拴绳节点：实体离 home 太远时被拉回指定区域，常用于怪物守家或巡逻圈限制。
 export class Leash extends BehaviorNode {
     constructor(
         private homePos: ValueOrFn<{ x: number; z: number } | null>,

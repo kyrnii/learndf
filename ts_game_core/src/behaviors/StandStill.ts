@@ -2,6 +2,7 @@ import { Entity } from "../core/Entity";
 import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Locomotor } from "../components/Locomotor";
 
+// 原地停留节点：满足条件时持续停在原地，适合待机、守卫或过渡状态。
 export class StandStill extends BehaviorNode {
     constructor(
         private startFn?: (inst: Entity) => boolean,

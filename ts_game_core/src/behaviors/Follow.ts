@@ -4,6 +4,7 @@ import { Locomotor } from "../components/Locomotor";
 import { Transform } from "../components/Transform";
 import { getDistanceSq, getTargetPosition, isAliveEntity, resolveValue, ValueOrFn } from "./utils";
 
+// 跟随节点：距离太远就靠近，距离太近就后退，维持与目标的舒适跟随距离。
 export class Follow extends BehaviorNode {
     private currentTarget: Entity | null = null;
     private action: "APPROACH" | "BACKOFF" | null = null;

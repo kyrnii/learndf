@@ -4,6 +4,7 @@ import { BrainManager } from "../core/behavior/BrainManager";
 import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Locomotor } from "../components/Locomotor";
 
+// 通用动作执行节点：生成一个 BufferedAction 并交给 Locomotor 驱动到 SG 命中帧。
 export class DoAction extends BehaviorNode {
     private action: BufferedAction | null = null;
     private pendingStatus: NodeStatus | null = null;

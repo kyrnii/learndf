@@ -4,7 +4,9 @@
   "main": "index.js",
   "scripts": {
     "demo": "ts-node src/example.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:web": "vite",
+    "build:web": "vite build"
   },
   "keywords": [],
   "author": "",
@@ -13,5 +15,10 @@
   "devDependencies": {
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.19.3",
+    "pixi.js": "^8.17.1",
+    "vite": "^6.2.0"
   }
 }

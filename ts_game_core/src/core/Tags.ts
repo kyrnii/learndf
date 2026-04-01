@@ -1,25 +1,45 @@
-/**
- * Tags for describing an Entity's nature or base capabilities.
- * Defined as bitmasks for high-performance checking.
- */
-export enum EntityTag {
-    None      = 0,
-    Player    = 1 << 0,
-    Monster   = 1 << 1,
-    Spider    = 1 << 2,
-    Character = 1 << 3
+export type Tag = string;
+export type TagQuery = Tag | Tag[];
+
+export const EntityTag = {
+    Player: "player",
+    Monster: "monster",
+    Spider: "spider",
+    Character: "character",
+} as const;
+
+export const StateTag = {
+    Idle: "idle",
+    Busy: "busy",
+    Attack: "attack",
+    Dead: "dead",
+    Hit: "hit",
+    CanRotate: "canrotate",
+} as const;
+
+export function toTagArray(tags?: TagQuery | null): Tag[] {
+    if (!tags) {
+        return [];
+    }
+    return Array.isArray(tags) ? tags : [tags];
 }
 
-/**
- * Tags for describing the current logical state of a StateGraph.
- * Defined as bitmasks for high-performance checking.
- */
-export enum StateTag {
-    None      = 0,
-    Idle      = 1 << 0,
-    Busy      = 1 << 1,
-    Attack    = 1 << 2,
-    Dead      = 1 << 3,
-    Hit       = 1 << 4,
-    CanRotate = 1 << 5
+export function hasAnyTag(source: Iterable<Tag>, query?: TagQuery | null): boolean {
+    const queries = toTagArray(query);
+    if (queries.length === 0) {
+        return false;
+    }
+
+    const sourceSet = source instanceof Set ? source : new Set(source);
+    return queries.some((tag) => sourceSet.has(tag));
+}
+
+export function hasAllTags(source: Iterable<Tag>, query?: TagQuery | null): boolean {
+    const queries = toTagArray(query);
+    if (queries.length === 0) {
+        return true;
+    }
+
+    const sourceSet = source instanceof Set ? source : new Set(source);
+    return queries.every((tag) => sourceSet.has(tag));
 }

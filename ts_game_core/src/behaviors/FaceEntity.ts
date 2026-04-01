@@ -4,6 +4,7 @@ import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Locomotor } from "../components/Locomotor";
 import { getTargetPosition, isAliveEntity } from "./utils";
 
+// 面向目标节点：停下移动并持续朝向某个目标，适合警戒、对话、瞄准等场景。
 export class FaceEntity extends BehaviorNode {
     private target: Entity | null = null;
     private startTime: number = 0;

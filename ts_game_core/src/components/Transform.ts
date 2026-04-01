@@ -30,4 +30,25 @@ export class Transform extends Component {
         const dz = tz - this.z;
         this.rotation = Math.atan2(dz, dx);
     }
+
+    public serialize(): unknown {
+        return {
+            x: this.x,
+            y: this.y,
+            z: this.z,
+            rotation: this.rotation,
+        };
+    }
+
+    public deserialize(data: unknown): void {
+        if (!data || typeof data !== "object") {
+            return;
+        }
+
+        const save = data as Partial<{ x: number; y: number; z: number; rotation: number }>;
+        this.x = save.x ?? this.x;
+        this.y = save.y ?? this.y;
+        this.z = save.z ?? this.z;
+        this.rotation = save.rotation ?? this.rotation;
+    }
 }

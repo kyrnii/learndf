@@ -14,14 +14,14 @@ export const sg_player_config: StateGraphConfig = {
     states: [
         new State({
             name: "idle",
-            tags: StateTag.Idle | StateTag.CanRotate,
+            tags: [StateTag.Idle, StateTag.CanRotate],
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] Enter 'idle'`);
             }
         }),
         new State({
             name: "walk",
-            tags: StateTag.Busy | StateTag.CanRotate,
+            tags: [StateTag.Busy, StateTag.CanRotate],
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] Enter 'walk'`);
             }
@@ -50,7 +50,7 @@ export const sg_player_config: StateGraphConfig = {
         }),
         new State({
             name: "death",
-            tags: StateTag.Busy | StateTag.Dead,
+            tags: [StateTag.Busy, StateTag.Dead],
             excludeTags: StateTag.Dead,
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] Enter 'death'`);

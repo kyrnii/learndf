@@ -4,6 +4,7 @@ import { BehaviorNode, NodeStatus } from "../core/behavior/Node";
 import { Combat } from "../components/Combat";
 import { getDistanceSq, getTargetPosition, isAliveEntity } from "./utils";
 
+// 站桩攻击节点：不主动追击，只在原地面向目标并反复尝试攻击。
 export class StandAndAttack extends BehaviorNode {
     private target: Entity | null = null;
     private startTime: number | null = null;

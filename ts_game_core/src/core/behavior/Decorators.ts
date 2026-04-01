@@ -1,12 +1,14 @@
 import { Entity } from "../Entity";
 import { BehaviorNode, NodeStatus } from "./Node";
 
+// 装饰器基类：包装单个子节点，对它的结果进行再加工。
 export class DecoratorNode extends BehaviorNode {
     constructor(name: string, child: BehaviorNode) {
         super(name, [child]);
     }
 }
 
+// 非装饰器：把子节点的成功和失败结果反转。
 export class NotDecorator extends DecoratorNode {
     constructor(child: BehaviorNode) {
         super("Not", child);
@@ -26,6 +28,7 @@ export class NotDecorator extends DecoratorNode {
     }
 }
 
+// 运行即失败装饰器：如果子节点仍在运行，就把结果转成失败。
 export class FailIfRunningDecorator extends DecoratorNode {
     constructor(child: BehaviorNode) {
         super("FailIfRunning", child);
@@ -43,6 +46,7 @@ export class FailIfRunningDecorator extends DecoratorNode {
     }
 }
 
+// 成功即失败装饰器：如果子节点成功，就把结果转成失败。
 export class FailIfSuccessDecorator extends DecoratorNode {
     constructor(child: BehaviorNode) {
         super("FailIfSuccess", child);

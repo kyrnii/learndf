@@ -30,4 +30,22 @@ export class Inventory extends Component {
     public getItems(): InventorySlot[] {
         return Array.from(this.slots.values()).map((slot) => ({ ...slot }));
     }
+
+    public serialize(): unknown {
+        return {
+            items: this.getItems(),
+        };
+    }
+
+    public deserialize(data: unknown): void {
+        if (!data || typeof data !== "object") {
+            return;
+        }
+
+        const save = data as Partial<{ items: InventorySlot[] }>;
+        this.slots.clear();
+        for (const item of save.items ?? []) {
+            this.slots.set(item.prefabName, { ...item });
+        }
+    }
 }

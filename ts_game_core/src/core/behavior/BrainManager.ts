@@ -1,22 +1,16 @@
 import { Brain } from "./Brain";
 
+// 行为树调度器：统一管理一个 World 内所有 Brain 的唤醒、休眠和更新节奏。
 export class BrainManager {
     public static GLOBAL_TIME: number = 0;
-    private static instance: BrainManager;
 
     private updaters: Set<Brain> = new Set();
     private hibernaters: Set<Brain> = new Set();
     private tickwaiters: Map<number, Set<Brain>> = new Map();
 
     private currentTick: number = 0;
-    private tickTime: number = 0.033; // 30Hz
-
-    public static getInstance(): BrainManager {
-        if (!BrainManager.instance) {
-            BrainManager.instance = new BrainManager();
-        }
-        return BrainManager.instance;
-    }
+    private tickTime: number = 0.033;
+    public currentTime: number = 0;
 
     public addInstance(brain: Brain): void {
         this.updaters.add(brain);
@@ -47,10 +41,11 @@ export class BrainManager {
 
     public sleep(brain: Brain, timeToWait: number): void {
         let sleepTicks = Math.floor(timeToWait / this.tickTime);
-        if (sleepTicks === 0) sleepTicks = 1;
+        if (sleepTicks === 0) {
+            sleepTicks = 1;
+        }
 
         const targetTick = this.currentTick + sleepTicks;
-
         this.removeInstance(brain);
 
         if (!this.tickwaiters.has(targetTick)) {
@@ -59,16 +54,10 @@ export class BrainManager {
         this.tickwaiters.get(targetTick)!.add(brain);
     }
 
-    private isWaiting(brain: Brain): boolean {
-        for (const waiters of this.tickwaiters.values()) {
-            if (waiters.has(brain)) return true;
-        }
-        return false;
-    }
-
     public update(dt: number): void {
-        BrainManager.GLOBAL_TIME += dt;
-        this.currentTick++; // Simulate advancing ticks
+        this.currentTime += dt;
+        BrainManager.GLOBAL_TIME = this.currentTime;
+        this.currentTick++;
 
         const waiters = this.tickwaiters.get(this.currentTick);
         if (waiters) {
@@ -78,7 +67,6 @@ export class BrainManager {
             this.tickwaiters.delete(this.currentTick);
         }
 
-        // Iterate safely over the updaters
         const safeUpdaters = Array.from(this.updaters);
         for (const brain of safeUpdaters) {
             if (!brain.inst || !brain.inst.isValid) {
@@ -93,10 +81,18 @@ export class BrainManager {
                 if (sleepAmount > this.tickTime) {
                     this.sleep(brain, sleepAmount);
                 }
-                // Else: Do nothing, leave it in updaters set to tick again next frame
             } else {
                 this.hibernate(brain);
             }
         }
+    }
+
+    private isWaiting(brain: Brain): boolean {
+        for (const waiters of this.tickwaiters.values()) {
+            if (waiters.has(brain)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

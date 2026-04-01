@@ -8,6 +8,7 @@ export enum NodeStatus {
     RUNNING = "RUNNING",
 }
 
+// 行为树节点基类：定义状态、父子关系、睡眠机制和通用生命周期。
 export abstract class BehaviorNode {
     public status: NodeStatus = NodeStatus.READY;
     public lastResult: NodeStatus = NodeStatus.READY;

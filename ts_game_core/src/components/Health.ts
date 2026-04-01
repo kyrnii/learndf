@@ -31,4 +31,21 @@ export class Health extends Component {
             this.currentHealth = this.maxHealth;
         }
     }
+
+    public serialize(): unknown {
+        return {
+            maxHealth: this.maxHealth,
+            currentHealth: this.currentHealth,
+        };
+    }
+
+    public deserialize(data: unknown): void {
+        if (!data || typeof data !== "object") {
+            return;
+        }
+
+        const save = data as Partial<{ maxHealth: number; currentHealth: number }>;
+        this.maxHealth = save.maxHealth ?? this.maxHealth;
+        this.currentHealth = save.currentHealth ?? this.currentHealth;
+    }
 }

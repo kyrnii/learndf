@@ -23,21 +23,21 @@ export const sg_spider_config: StateGraphConfig = {
     states: [
         new State({
             name: "idle",
-            tags: StateTag.Idle | StateTag.CanRotate,
+            tags: [StateTag.Idle, StateTag.CanRotate],
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] 🟢 Enter 'idle'`);
             }
         }),
         new State({
             name: "walk",
-            tags: StateTag.Busy | StateTag.CanRotate,
+            tags: [StateTag.Busy, StateTag.CanRotate],
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] 🚶 Plays 'walk' loop...`);
             }
         }),
         new State({
             name: "attack",
-            tags: StateTag.Attack | StateTag.Busy,
+            tags: [StateTag.Attack, StateTag.Busy],
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] ⚔️ Start 'attack' animation...`);
             },
@@ -60,7 +60,7 @@ export const sg_spider_config: StateGraphConfig = {
         }),
         new State({
             name: "hit",
-            tags: StateTag.Busy | StateTag.Hit,
+            tags: [StateTag.Busy, StateTag.Hit],
             excludeTags: StateTag.Dead, // Cannot enter 'hit' if already 'Dead'
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] 🤕 Plays 'hit' animation!`);
@@ -77,7 +77,7 @@ export const sg_spider_config: StateGraphConfig = {
         }),
         new State({
             name: "death",
-            tags: StateTag.Busy | StateTag.Dead,
+            tags: [StateTag.Busy, StateTag.Dead],
             excludeTags: StateTag.Dead, // Prevent re-entering death
             onEnter: (inst) => {
                 console.log(`[SG: ${inst.prefabName}] 💀 Plays 'death' animation... X_X`);

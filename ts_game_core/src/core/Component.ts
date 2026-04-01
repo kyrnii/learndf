@@ -25,4 +25,14 @@ export abstract class Component {
      * @param dt Delta time since last frame
      */
     public update?(dt: number): void;
+
+    /**
+     * Optional serialization hook used by save systems.
+     */
+    public serialize?(): unknown;
+
+    /**
+     * Optional deserialization hook used by save systems.
+     */
+    public deserialize?(data: unknown): void;
 }
